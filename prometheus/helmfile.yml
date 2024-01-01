@@ -111,8 +111,11 @@ releases:
                   config:
                     bucket: thanos
                     endpoint: minio.monitoring
+                    # for production wrap the access keys with sops
                     access_key: thanos-user
                     secret_key: thanos-password
+                    # this should be disabled in production, work around
+                    # minio self-signed certs
                     http_config:
                       insecure_skip_verify: true
             scrapeInterval: "20s"

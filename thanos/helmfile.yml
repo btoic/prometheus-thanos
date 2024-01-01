@@ -15,12 +15,15 @@ releases:
     version: 12.20.1
     installed: true
     values:
+      # objstore config is created in prometheus stack for sidecars
+      # this is referencing that same config for storegateway and compactor
       - existingObjstoreSecret: prometheus-kind-prometheus
       - existingObjstoreSecretItems:
           - key: object-storage-configs.yaml
             path: objstore.yml
       - query:
           dnsDiscovery:
+            # created as part of kube-prometheus-stack when deploying sidecars
             sidecarsService: prometheus-kind-thanos-discovery
             sidecarsNamespace: monitoring
           ingress:
@@ -32,6 +35,7 @@ releases:
             hostname: thanos-qf.localhost
       - compactor:
           enabled: true
+          # Set retention to forever
           retentionResolutionRaw: 0s
           retentionResolution5m: 0s
           retentionResolution1h: 0s

@@ -34,6 +34,8 @@ releases:
       - minio-operator/operator
     installed: true
     values:
+      # this is not production ready. Lot's of insecure settings and no fault
+      # tolerance. Use this only for development/testing
       - tenant:
           name: thanos-s3
           pools:
