@@ -1,0 +1,114 @@
+---
+helmDefaults:
+  atomic: true
+  wait: true
+  createNamespace: true
+
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+releases:
+  - name: prom-blackbox
+    namespace: monitoring
+    chart: prometheus-community/prometheus-blackbox-exporter
+    version: 8.6.1
+    installed: true
+    values:
+      - podDisruptionBudget:
+          minAvailable: 1
+      - replicas: 2
+      - serviceMonitor:
+          enabled: true
+
+  - name: prometheus-crd
+    namespace: monitoring
+    chart: prometheus-community/prometheus-operator-crds
+    version: 8.0.1
+    installed: true
+
+  - name: prometheus
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    disableValidationOnInstall: true
+    version: 55.5.0
+    installed: true
+    needs:
+      - monitoring/prometheus-crd
+      - monitoring/prom-blackbox
+    values:
+      - nameOverride: kind
+      - defaultRules:
+          rules:
+            etcd: false
+            kubeControllerManaer: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            kubeApiserver: false
+            kubeApiserverAvailability: false
+            kubeApiserverError: false
+            kubeApiserverSlos: false
+            kubeProxy: false
+      - alertmanager:
+          podDisruptionBudget:
+            enabled: true
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt
+            hosts:
+              - alerts.localhost
+            paths:
+              - /
+            pathType: Prefix
+            tls:
+              - secretName: alertmanager-general-tls
+                hosts:
+                  - alerts.localhost
+          alertmanagerSpec:
+            replicas: 3
+            externalUrl: https://alerts.localhost
+            podAntiAffinity: "hard"
+            minReadySeconds: 45
+      - grafana:
+          enabled: false
+      - kubeProxy:
+          enabled: false
+      - kubeScheduler:
+          enabled: false
+      - kubeEtcd:
+          enabled: false
+      - kubeControllerManager:
+          enabled: false
+      - prometheus:
+          podDisruptionBudget:
+            enabled: true
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt
+            hosts:
+              - prom.localhost
+            paths:
+              - /
+            pathType: Prefix
+            tls:
+              - secretName: prometheus-general-tls
+                hosts:
+                  - prometheus.localhost
+          prometheusSpec:
+            scrapeInterval: "20s"
+            externalUrl: https://prom.localhost
+            retention: 1w
+            retentionSize: "10GB"
+            replicas: 2
+            podAntiAffinity: "hard"
+            minReadySeconds: 45
+            podAntiAffinityTopologyKey: topology.kubernetes.io/zone
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 15Gi
