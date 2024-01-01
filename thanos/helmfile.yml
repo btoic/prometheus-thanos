@@ -22,6 +22,7 @@ releases:
           - key: object-storage-configs.yaml
             path: objstore.yml
       - query:
+          replicaLabel: prometheus_replica
           dnsDiscovery:
             # created as part of kube-prometheus-stack when deploying sidecars
             sidecarsService: prometheus-kind-thanos-discovery
@@ -45,3 +46,15 @@ releases:
           enabled: true
           serviceMonitor:
             enabled: true
+            labels:
+              release: prometheus
+          prometheusRule:
+            enabled: true
+            additionalLabels:
+              release: prometheus
+            default:
+              absent_rules: true
+              compaction: true
+              query: true
+              replicate: true
+              store_gateway: true
