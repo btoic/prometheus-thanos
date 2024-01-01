@@ -1,0 +1,57 @@
+---
+helmDefaults:
+  atomic: true
+  wait: true
+  createNamespace: true
+
+repositories:
+  - name: minio-operator
+    url: https://operator.min.io
+
+releases:
+  - name: operator
+    namespace: minio-operator
+    chart: minio-operator/operator
+    version: 5.0.11
+    installed: true
+    values:
+      - console:
+          ingress:
+            enabled: true
+            host: minio.localhost
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt
+            tls:
+              - secretName: minio-general-tls
+                hosts:
+                  - minio.localhost
+
+  - name: thanos-s3
+    namespace: monitoring
+    chart: minio-operator/tenant
+    version: 5.0.11
+    needs:
+      - minio-operator/operator
+    installed: true
+    values:
+      - tenant:
+          name: thanos-s3
+          pools:
+            # Only for testing
+            - servers: 1
+              volumesPerServer: 3
+          buckets:
+            - name: thanos
+          users:
+            - name: thanos-s3-credentials
+      - extraResources:
+          - |
+            apiVersion: v1
+            kind: Secret
+            type: Opaque
+            metadata:
+              name: thanos-s3-credentials
+            # This should be wrapped with sops
+            stringData:
+              CONSOLE_ACCESS_KEY: thanos-user
+              CONSOLE_SECRET_KEY: thanos-password

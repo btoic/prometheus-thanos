@@ -21,6 +21,14 @@ helmfile --file kind/helmfile.yaml apply --skip-needs=false
 
 This will install and expose Haproxy ingress controller on port 80 and 443. Cert manager will be installed with local cert issuer.
 
+## Install minio and tenant
+
+Can be skipped if external s3 provider for thanos is already available.
+This is for local testing only.
+```bash
+helmfile --file minio/helmfile.yml apply --skip-needs=false
+```
+
 ## Install kube-prometheus-stack
 
 ```bash
