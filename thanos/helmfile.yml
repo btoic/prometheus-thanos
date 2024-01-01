@@ -58,3 +58,7 @@ releases:
               query: true
               replicate: true
               store_gateway: true
+              disabled:
+                ThanosReceiveIsDown: true
+                ThanosRuleIsDown: true
+                ThanosSidecarIsDown: true
