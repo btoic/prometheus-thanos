@@ -1,0 +1,43 @@
+---
+helmDefaults:
+  atomic: true
+  wait: true
+  createNamespace: true
+
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+releases:
+  - name: thanos
+    namespace: monitoring
+    chart: bitnami/thanos
+    version: 12.20.1
+    installed: true
+    values:
+      - existingObjstoreSecret: prometheus-kind-prometheus
+      - existingObjstoreSecretItems:
+          - key: object-storage-configs.yaml
+            path: objstore.yml
+      - query:
+          dnsDiscovery:
+            sidecarsService: prometheus-kind-thanos-discovery
+            sidecarsNamespace: monitoring
+          ingress:
+            enabled: true
+            hostname: thanos.localhost
+      - queryFrontend:
+          ingress:
+            enabled: true
+            hostname: thanos-qf.localhost
+      - compactor:
+          enabled: true
+          retentionResolutionRaw: 0s
+          retentionResolution5m: 0s
+          retentionResolution1h: 0s
+      - storegateway:
+          enabled: true
+      - metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true

@@ -34,3 +34,9 @@ helmfile --file minio/helmfile.yml apply --skip-needs=false
 ```bash
 helmfile --file prometheus/helmfile.yml apply --skip-needs=false
 ```
+
+## Install bitnami thanos
+
+```bash
+helmfile --file thanos/helmfile.yml apply --skip-needs=false
+```

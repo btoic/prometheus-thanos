@@ -83,6 +83,10 @@ releases:
       - prometheus:
           podDisruptionBudget:
             enabled: true
+          thanosService:
+            enabled: true
+          thanosServiceMonitor:
+            enabled: true
           ingress:
             enabled: true
             annotations:
@@ -97,6 +101,20 @@ releases:
                 hosts:
                   - prometheus.localhost
           prometheusSpec:
+            thanos:
+              additionalArgs:
+                - name: shipper.upload-compacted
+              logLevel: debug
+              objectStorageConfig:
+                secret:
+                  type: S3
+                  config:
+                    bucket: thanos
+                    endpoint: minio.monitoring
+                    access_key: thanos-user
+                    secret_key: thanos-password
+                    http_config:
+                      insecure_skip_verify: true
             scrapeInterval: "20s"
             externalUrl: https://prom.localhost
             retention: 1w
